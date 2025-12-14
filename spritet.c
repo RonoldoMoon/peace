@@ -7,8 +7,16 @@ int main(){
 	
 	SDL_Surface* screen = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE);;
 	
+	SDL_Surface* guy = Load_BMP("tv.bmp");
+	
+	SDL_Rect guyr;
+	
+	SpriteInit(guyr, 0);
+	
 	sprite_t *being;
 	being = malloc(sizeof(sprite_t));
+
+	SDL_BlitSurface(guy, NULL, screen, &guyr);
 
 	SDL_UpdateRect(screen, 0, 0, 0, 0);
 	

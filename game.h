@@ -1,53 +1,121 @@
 #include <SDL/SDL.h>
+#include <time.h>
 
-	//used to
-typedef struct sprite_s{
-	int x, y, w, h;
-} sprite_t;
+//General functions
 
-int SpriteInit(sprite_t A, int type){
-	//enemy
-	if(type == 0){
-		A.x = 0;
-		A.y = 0;
-		A.w = 32;
-		A.h = 32;
+SDL_bool CheckCollision(SDL_Rect A, SDL_Rect B)
+{
+    // The sides of the rectangles
+    int leftA, leftB;
+    int rightA, rightB;
+    int topA, topB;
+    int bottomA, bottomB;
+
+    // Calculate the sides of rect A
+    leftA = A.x;
+    rightA = A.x + A.w;
+    topA = A.y;
+    bottomA = A.y + A.h;
+
+    // Calculate the sides of rect B
+    leftB = B.x;
+    rightB = B.x + B.w;
+    topB = B.y;
+    bottomB = B.y + B.h;
+
+    // If any of the sides from A are outside of B
+    if (bottomA <= topB) { return SDL_FALSE; }
+    if (topA >= bottomB) { return SDL_FALSE; }
+    if (rightA <= leftB) { return SDL_FALSE; }
+    if (leftA >= rightB) { return SDL_FALSE; }
+
+    // If none of the sides from A are outside B
+    return SDL_TRUE;
+}
+
+ int SetRect(SDL_Rect* A, int x, int y, int w, int h){
+	A->x = x;
+	A->y = y;
+	A->w = w;
+	A->h = h;
+	return 0;
+}
+
+//Uses SetRect() to put Rect A into Rect B
+void CloneRect(SDL_Rect* A,SDL_Rect* B){
+	SetRect(B,A->x,A->y,A->w,A->h);
+} 
+
+int Timeout(){
+	int num = (rand()%40);
+	num -=1;
+	/*
+	if(time(NULL) > (time(NULL) +num)){
+		return 1;
 	}
-	//player
-	if(type == 1){
-		A.x = 160;
-		A.y = 208;
-		A.w = 32;
-		A.h = 32;
+	* */
+	if(0 >= num){
+		return 1;
 	}
-	//bullet
-	if(type == 2){
-		A.x = 0;
-		A.y = 240;
-		A.w = 4;
-		A.h = 8;
+	return 0;
+}
+
+/*#################################
+  ##							   #
+  ##	ENEMY OBJECT CODE :'(	    #
+  ##							  	#
+  ###################################
+*/
+
+SDL_Rect clone;
+SDL_Rect clone1;
+SDL_Rect clone2;
+SDL_Rect clone3;
+SDL_Rect clone4;
+SDL_Rect clone5;
+SDL_Rect clone6;
+SDL_Rect clone7;
+SDL_Rect clone8;
+SDL_Rect clone9;
+SDL_Rect clone10;
+
+int Attack(SDL_Rect* A, SDL_Rect* B, SDL_Surface* scr){
+	B->w = 4;
+	B->h = 8;
+	
+	B->x = (A->x + 16);
+	B->y = (A->y + 16);
+	SDL_FillRect(scr, B, SDL_MapRGB(scr->format, 20, 210, 200));
+
+	if(B->y < 232){
+		B->y += 2;
+		SDL_FillRect(scr, B, SDL_MapRGB(scr->format, 20, 210, 200));
+		return 1;
 	}
-	//background
-	if(type == 3){
-		A.x = 0;
-		A.y = 0;
-		A.w = 0;
-		A.h = 0;
-	}
-	printf("rect x: %d rect y:%d\n", A.x, A.y);
-	printf("rect w: %d rect h:%d\n", A.w, A.h);
 	
 	return 0;
-}	
+	
+	
+}
 
-int spr2rect(sprite_t *A, SDL_Rect B){
-		B.x = A.x;
-		B.y = A.y;
-		B.w = A.w;
-		B.h = A.h;
-		if(B.x == A.x && B.y == A.y && B.w == A.w && B.h == A.h )
-			return 1;
-		else{
-			return 0;
+//Rect A is enemy. B is bullet. sprite is sprite.
+int HandleEnemy(SDL_Rect* A,SDL_Surface* sprite, SDL_Surface* scr, SDL_Rect* proj){
+	
+	int atk = 0;
+	
+	if(Timeout()){
+		int xdir = (rand()%50);
+		int pol = (rand()%3);
+		pol -=1;
+		printf("%d\n",pol);
+		if(A->x < (320 - A->w)){
+			A->x += (xdir * pol);
 		}
+		atk = 1;
 	}
+	if(atk){
+		if(Attack(A,proj,scr))
+			atk = 0;
+	}
+	SDL_BlitSurface(sprite, NULL, scr, A);
+}
