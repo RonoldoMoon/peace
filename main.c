@@ -1,172 +1,213 @@
-#include "game.h"
-
 /*
-	space invaders clone written in SDL1.2
+	space invaders clone written with SDL1.2 in C
 	* nov 28 2025
 	* Marlow Rekers
+	* Dec -  2025
+	* Moon
 */
 
-int main(int argc, char** argv){
+#include "game.h"
+
+/***
+DONT USE THE FRENCH VERSION OF COLOR XD
+***/
+
+
+
+int main(){
 	   
-    int quit = 1;
-    
-    int xvel, yvel, colour;
-   
-    int shoot = 0; 
-    int tvel = 1;
+    int quit    = 0;  
+    int xvel, yvel, color;
+    int shoot   = 0;
+    int envel   = 0;    
+    int atk     = 0;    
+    int tvalive = 1;   
+    int tvel    = 1;
      
     SDL_Init(SDL_INIT_VIDEO);
 	
 	SDL_WM_SetCaption("Ailen Attack", "Ailen Attack");
 	
 	SDL_Surface* screen = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE);
+	
+    /*
+     * color mask doesn't work yet :'(
+    Uint32 colorkey = SDL_MapRGB(screen->format, 0, 0xFF, 0xFF); // Map a turquoise color
+    SDL_SetColorKey(screen, SDL_SRCCOLORKEY, colorkey); 
+    */
     
     //define images
-    SDL_Surface* bgimage = SDL_LoadBMP("bg.bmp");
-	SDL_Surface* ship = SDL_LoadBMP("jointship.bmp");
-    SDL_Surface* tv = SDL_LoadBMP("tv.bmp");
+    SDL_Surface* bgimage = SDL_LoadBMP("image/bg.bmp");
+    SDL_Surface* player  = SDL_LoadBMP("image/jointship.bmp");
+    SDL_Surface* tv      = SDL_LoadBMP("image/tv.bmp");
     
     //define position / hitbox of said images
-    SDL_Rect bg;
+    
+    SDL_Rect rect, bg, enemy, bullet, shot;
+    
 
-    ship_t enemy1, player;
-    ship_t en2, en3, en4, en5, en6, en7;
+    setRect(&rect,  10, 208,  32,  32);
+    setRect(&bg,     0,   0, 320, 240);
+    setRect(&enemy, 50,  10,  32,  32);
+    setRect(&bullet, 0, 320,   4,   8);
+    setRect(&shot,   0,   0,   4,   8);
     
-    ShipSet(&enemy1, 0);
-	ShipSet(&en2, 0);
-	ShipSet(&en3, 0);
-	ShipSet(&en4, 0);
-	ShipSet(&en5, 0);
-	ShipSet(&en6, 0);
-	ShipSet(&en7, 0);
-	ShipSet(&player, 1);
+    xvel = 0;
+    yvel = 0;
     
-    en2.r.y += 32;
-	en3.r.y += 64;
-	en4.r.y += 128;
-	en5.r.y += 196;
-    en6.r.y += 32;
-    en7.r.y += 64;
+    color = 0;
     
-    SetRect(&bg,0,0,320,240);
-
-	SDL_Event event;
-    
+    SDL_Event event;
     /* Main game loop */
     /* Check for events */
-    while(quit){
-    while( SDL_PollEvent( &event )){
-        switch( event.type ){
+    while(!quit)  {
+    
+    while( SDL_PollEvent( &event ))  {
+    
+        switch( event.type )  {
+	
             case SDL_KEYDOWN:
-                switch( event.key.keysym.sym ){
-                    case SDLK_LEFT:
-						player.xvel = -4;
-                        break;
-                    case SDLK_RIGHT:
-						player.xvel = 4;
-                        break;
-                    case SDLK_SPACE:
-                        if(shoot == 0){
-							shoot = 1;
-							player.b.x = (player.r.x + (player.r.w /2));
-							player.b.y = player.r.y;
-						}
-                        break;
-                    case SDLK_a:
-                        if(shoot == 0){
-							shoot = 1;
-							player.b.x = (player.r.x + (player.r.w /2));
-							player.b.y = player.r.y;
-						}
-                        break;
-                    case SDLK_RETURN:
-						quit = 0;
-						break;
-                    default:
-                        break;
-                }
-                break;
-            case SDL_KEYUP:
-                switch( event.key.keysym.sym ){
-                    case SDLK_LEFT:
-                        if( player.xvel < 0)
-                            player.xvel = 0;
-                        break;
-                    case SDLK_RIGHT:
-                        if( player.xvel > 0 )
-                            player.xvel = 0;
-                        break;
-                    case SDLK_UP:
-                    
-                        break;
-                    case SDLK_DOWN:
-                        
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            
-            default:
-                break;
-        
-        }
-        
-        }	
+	    
+                switch( event.key.keysym.sym )  {
 		
-		if(player.r.x < (320 - player.r.w)){
-			player.r.x += player.xvel;
+                    case SDLK_LEFT:   xvel = -4; break;
+                    case SDLK_RIGHT:  xvel = 4;  break;
+                    case SDLK_SPACE:  if(shoot == 0){
+							shoot = 1;
+							bullet.x = (rect.x + (rect.w /2));
+							bullet.y = rect.y;
+                                                    }   break;
+                    case SDLK_a:      if(shoot == 0){
+							shoot = 1;
+							bullet.x = (rect.x + (rect.w /2));
+							bullet.y = rect.y;
+                                                    }   break;
+                    case SDLK_RETURN: quit = 1;  break;
+                    default:  break;
+            }
+            break;
+	    
+            case SDL_KEYUP:
+	    
+                switch( event.key.keysym.sym )  {
+		
+                    case SDLK_LEFT:  if( xvel < 0)  xvel = 0; break;  //not realy sure why are checking this value. ZIM
+                    case SDLK_RIGHT: if( xvel > 0 ) xvel = 0; break;
+                    case SDLK_UP:  /* if( yvel < 0 ) yvel = 0;  */ break;
+                    case SDLK_DOWN: /* if( yvel > 0 )  yvel = 0; */break;
+                    default: break;
+                }   break;
+            
+            default: break;
+        }
+    }
+    
+/***
+END EVENT HANDLING
+***/
+
+
+                /* accumulating movment vector to position */	
+		if(rect.x < (320 - rect.w)){
+			rect.x += xvel;
 		}
 		else{
-			player.r.x -= 4;
+			rect.x -= 4;
 		}
 		
 		//draw the background
 		SDL_BlitSurface(bgimage, NULL, screen, &bg);
 
+                
+		if(CheckCollision(enemy, bullet)){
+			tv = SDL_LoadBMP("tvc.bmp");
+			tvalive = 0;
+			//printf(": %d", tvalive);
+		}
 		
 		//draw the enemy
-		/*
-		if(CheckCollision(enemy1.b, player.r)){
-			ship = SDL_LoadBMP("tvc.bmp");
+		if(tvalive && tvalive != 3){
+			if(Timeout()){
+				int xdir = (rand()%50);
+				int pol = (rand()%4);
+				if(pol < 1)
+					pol = 1;
+				if(pol > 1)
+					pol = -1;
+				
+				if(enemy.x < (320 - enemy.w)){
+					enemy.x += (xdir * pol);
+				}
+			}
+			
+			SDL_BlitSurface(tv, NULL, screen, &enemy);
 		}
-		*/
 		
+		if(Timeout()){
+			if(atk == 0 && tvalive != 3)
+				atk = 1;
+		}
 		
-		
-		EnemyHandle(&player, &enemy1, screen, tv);
-		EnemyHandle(&player, &en2, screen, tv);
-		EnemyHandle(&player, &en3, screen, tv);
-		EnemyHandle(&player, &en4, screen, tv);
-		EnemyHandle(&player, &en5, screen, tv);
-		EnemyHandle(&player, &en6, screen, tv);
-		EnemyHandle(&player, &en7, screen, tv);
+		if(atk == 1){
+			shot.x = (enemy.x + 16);
+			shot.y = (enemy.y + 16);
+			SDL_FillRect(screen, &shot, SDL_MapRGB(screen->format, 20, 210, 200));
+			atk = 2;
+		}
+		if(atk == 2){
+			if(shot.y < 232){
+				shot.y += 2;
+				if(CheckCollision(rect, shot))
+					player = SDL_LoadBMP("tvc.bmp");
+				SDL_FillRect(screen, &shot, SDL_MapRGB(screen->format, 20, 210, 200));
+			}
+			else{
+				atk = 0;
+			}
+				
+		}
 		
 		//draw the player
-		SDL_BlitSurface(ship, NULL, screen, &player.r);
+		SDL_BlitSurface(player, NULL, screen, &rect);
+		
+		if(tvalive == 0)
+		{
+			SDL_BlitSurface(tv, NULL, screen, &enemy);
+			enemy.y += envel;
+			if(Timeout()){
+				tvalive = 3;
+			}
+			/*
+			if(enemy.y < 240){
+				envel += 2;
+			}else{
+				tvalive = 2;
+			}
+			*/
+		}
 		
 		if(shoot){
-			if(player.b.y > 0){	
-				player.b.y -= 4;
-				SDL_FillRect(screen, &player.b, SDL_MapRGB(screen->format, 20, 210, 200));
+			if(bullet.y > 0){	
+				bullet.y -= 4;
+				SDL_FillRect(screen, &bullet, SDL_MapRGB(screen->format, 20, 210, 200));
 			}
 			else{
 				shoot = 0;
-				player.b.y = 233;
 			}
 		}
 		
+		
+		
+		
 		SDL_UpdateRect(screen, 0, 0, 0, 0);
+		//SDL_Flip(screen);  // for double buffer.
 		SDL_Delay(1000/60);
 
 	}
     
-    SDL_FreeSurface(ship);
-    SDL_FreeSurface(tv);
-    SDL_FreeSurface(screen);
-    SDL_FreeSurface(bgimage);
+    SDL_FreeSurface(player);
     SDL_Quit();
     
 	return 0;
  }
-
+ 
