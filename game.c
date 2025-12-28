@@ -53,7 +53,7 @@ void* findLast(character_t *p)  {
 
   while((ref = p->next)) if(ref) p = ref;  //find last in the list
   
-  return ref;
+  return p;
 }
 
 void characterAdd(character_t *p, int x, int y, int w, int h, int dx, int dy, char* spritepath)  {
